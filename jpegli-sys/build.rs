@@ -34,16 +34,19 @@ pub fn main() {
         .define("JPEGLI_LIBJPEG_LIBRARY_VERSION", "8.2.2")
         .build_target("jpegli-static");
 
-    let mut prefix = config.build();
-    prefix.push("build");
-    prefix.push("lib");
-    println!("cargo:rustc-link-search=native={}", prefix.display());
+    let build_dir = config.build();
 
-    let mut prefix = config.build();
-    prefix.push("build");
-    prefix.push("third_party");
-    prefix.push("highway");
-    println!("cargo:rustc-link-search=native={}", prefix.display());
+    // On Windows MSVC, CMake outputs to lib/Release/ subdirectory
+    // On Unix, it outputs directly to lib/
+    let lib_path = build_dir.join("build").join("lib");
+    println!("cargo:rustc-link-search=native={}", lib_path.display());
+    #[cfg(target_env = "msvc")]
+    println!("cargo:rustc-link-search=native={}", lib_path.join("Release").display());
+
+    let highway_path = build_dir.join("build").join("third_party").join("highway");
+    println!("cargo:rustc-link-search=native={}", highway_path.display());
+    #[cfg(target_env = "msvc")]
+    println!("cargo:rustc-link-search=native={}", highway_path.join("Release").display());
 
     println!("cargo:rustc-link-lib=jpegli-static");
     println!("cargo:rustc-link-lib=hwy");
